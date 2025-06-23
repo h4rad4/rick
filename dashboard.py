@@ -23,7 +23,6 @@ def load_data():
         "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO",
     ]
 
-    # --- Fatura total ---
     invoice_data = {
         "Santander Platinum Visa 1132": [4776.08, 4702.96, 4018.79, 5355.41, 12891.46, 14475.42, 10418.53, 24263.48, 26094.44, 25777.71, 25930.09, 21569.50],
         "SMILES BANCO DO BRASIL 4208": [0, 5227.03, 5142.01, 5109.55, 5170.39, 5647.50, 12640.19, 7820.56, 13390.90, 8290.93, 9735.91, 10091.23],
@@ -36,7 +35,6 @@ def load_data():
         "CETELEM": [151.63, 0, 361.36, 0, 268.96, 192.42, 167.33, 0, 180.63, 0, 102.34, 141.28],
     }
 
-    # --- Pagamentos cartão ---
     payment_data = {
         "Santander Platinum Visa 1132": [4100.00, 1600.00, 0, 5355.41, 4780.00, 12075.42, 9918.53, 15040.42, 12800.00, 13328.21, 14000.00, 15800.00],
         "SMILES BANCO DO BRASIL 4208": [0, 4000.00, 1142.00, 5109.55, 5170.39, 5647.50, 7640.19, 20850.00, 0, 8010.93, 8335.91, 11261.14],
@@ -49,7 +47,6 @@ def load_data():
         "CETELEM": [0] * 12,
     }
 
-    # --- Terceiros ---
     third_party_data = {
         "Santander Platinum Visa 1132": [1380.90, 638.52, 638.52, 739.43, 1444.19, 2757.34, 461.87, 2201.39, 2475.85, 0, 6119.82, 0],
         "SMILES BANCO DO BRASIL 4208": [0, 1518.71, 0, 0, 321.00, 360.00, 800.06, 0, 1460.87, 389.10, 389.10, 389.10],
@@ -62,7 +59,6 @@ def load_data():
         "CETELEM": [0] * 12,
     }
 
-    # --- Próprios ---
     own_resources_data = {
         "Santander Platinum Visa 1132": [-704.82, 2464.44, 2319.23, -3200.31, 4667.76, -948.15, -380.04, 6603.50, 10718.72, 12349.63, 5810.27, 5769.50],
         "SMILES BANCO DO BRASIL 4208": [0, -291.68, 4000.01, -5491.39, -360.00, 4199.94, -13029.44, 11930.03, -109.10, 1010.90, -1559.01, 0],
@@ -76,6 +72,122 @@ def load_data():
     }
 
 
+    payment_cards_used = {
+        "Santander Platinum Visa 1132": [
+            "Itaú Master Gold",
+            "Itaú Visa Gold",
+            "-",
+            "Cartão Smiles / Itaú Master Platinum",
+            "Cartão Smiles / Itaú Master Platinum",
+            "Cartão Smiles / Itaú Master Platinum",
+            "Cartão Smiles / Itaú Master Platinum",
+            "Itaú Visa Gold / Cartão Smiles / Itaú Master Platinum",
+            "Cartão Smiles / Itaú Master Platinum",
+            "Itaú Master Gold / Cartão Smiles",
+            "Cartão Smiles / Itaú Master Gold",
+            "Cartão Smiles / Itaú Master Gold",
+        ],
+        "SMILES BANCO DO BRASIL 4208": [
+            "-",
+            "Itaú Master Platinum",
+            "Itaú Master Gold",
+            "Itaú Visa Gold / Santander Platinum",
+            "Santander Platinum",
+            "Itaú Visa Gold / Santander Platinum",
+            "Santander Platinum / Santander Platinum Visa",
+            "Itaú Master Gold / Santander Platinum Visa",
+            "Santander Platinum Visa",
+            "Santander Platinum",
+            "Santander Platinum",
+            "Santander Platinum Master / Itaú Visa Gold",
+        ],
+        "AmericanExpress_51000_Green": [
+            "-",
+            "Itaú Visa Gold",
+            "Itaú Master Platinum",
+            "Santander Platinum",
+            "Santander Platinum",
+            "Santander Platinum",
+            "Santander Platinum",
+            "Santander Platinum",
+            "Santander Platinum",
+            "Santander Platinum / Cartão Smiles / Itaú Master Platinum",
+            "Santander Platinum",
+            "Itaú Visa Gold",
+        ],
+        "AmericanExpress_78006_Platinum": [
+            "-",
+            "Itaú Master Gold",
+            "Cartão Smiles",
+            "Santander Platinum",
+            "Itaú Master Platinum",
+            "Santander Platinum",
+            "Itaú Master Platinum",
+            "Santander Platinum",
+            "Santander Platinum Visa",
+            "-",
+            "Itaú Visa Gold",
+            "Santander Platinum Visa",
+        ],
+        "ITAU MASTERCARD GOLD 0655": [
+            "-",
+            "Cartão Smiles",
+            "-",
+            "Santander Platinum Visa",
+            "Itaú Master Platinum",
+            "Santander Platinum Visa",
+            "Santander Platinum Visa",
+            "Santander Platinum Visa",
+            "Santander Platinum Visa",
+            "Santander Platinum Visa",
+            "Santander Platinum Visa",
+            "Santander Platinum Visa",
+        ],
+        "ITAU MASTERCARD PLATINUM 5798": [
+            "-",
+            "Itaú Master Gold",
+            "-",
+            "Santander Platinum Visa",
+            "Cartão Smiles / Itaú Master Gold",
+            "Santander Platinum Visa / Cartão Smiles",
+            "-",
+            "-",
+            "-",
+            "-",
+            "Santander Platinum Visa / Cartão Smiles",
+            "Santander Platinum Visa / Santander Platinum Master",
+        ],
+        "ITAU VISA GOLD 1267": [
+            "-",
+            "-",
+            "Cartão Smiles",
+            "Santander Platinum Visa",
+            "Santander Platinum Visa",
+            "-",
+            "-",
+            "Santander Platinum Visa",
+            "-",
+            "Santander Platinum Visa / Cartão Smiles",
+            "Santander Platinum Visa",
+            "Santander Platinum Master / Santander Platinum Visa",
+        ],
+        "Santander_Master": [
+            "-",
+            "-",
+            "-",
+            "-",
+            "-",
+            "-",
+            "-",
+            "-",
+            "-",
+            "-",
+            "-",
+            "Itaú Master Platinum",
+        ],
+        "CETELEM": ["-"] * 12,
+    }
+
 
     records = []
     for card in cards:
@@ -85,6 +197,7 @@ def load_data():
             thr = third_party_data.get(card, [0] * 12)[i]
             own = own_resources_data.get(card, [0] * 12)[i]
             ratio = pay / inv if inv else 0
+            cards_used = payment_cards_used.get(card, ["-"] * 12)[i]
             records.append(
                 dict(
                     Card=card,
@@ -94,22 +207,29 @@ def load_data():
                     Third_Party_Expenses=thr,
                     Own_Resources=own,
                     Payment_Ratio=ratio,
+                    Payment_Cards=cards_used,
                 )
             )
 
     df = pd.DataFrame(records)
-    numeric = ["Total_Invoice", "Total_Payments", "Third_Party_Expenses", "Own_Resources", "Payment_Ratio"]
+
+    numeric = [
+        "Total_Invoice",
+        "Total_Payments",
+        "Third_Party_Expenses",
+        "Own_Resources",
+        "Payment_Ratio",
+    ]
     df[numeric] = df[numeric].apply(pd.to_numeric).fillna(0)
     df["Month"] = pd.Categorical(df["Month"], categories=months, ordered=True)
 
     annual = (
-        df.groupby("Card")[["Total_Invoice", "Total_Payments", "Third_Party_Expenses", "Own_Resources"]]
+        df.groupby("Card")[["Total_Invoice", "Total_Payments",
+                            "Third_Party_Expenses", "Own_Resources"]]
         .sum()
         .reset_index()
     )
     return df, cards, months, annual
-
-
 
 
 df, cards, months, annual = load_data()
@@ -117,10 +237,10 @@ df, cards, months, annual = load_data()
 st.title("Finanças")
 
 st.header("Filtros")
-c1, c2 = st.columns(2)
-with c1:
+col1, col2 = st.columns(2)
+with col1:
     selected_cards = st.multiselect("Selecionar Cartões", cards, default=cards)
-with c2:
+with col2:
     selected_months = st.multiselect("Selecionar Meses", months, default=months)
 
 if not selected_cards or not selected_months:
@@ -129,9 +249,6 @@ if not selected_cards or not selected_months:
 
 filtered_df = df[df["Card"].isin(selected_cards) & df["Month"].isin(selected_months)]
 filtered_annual = annual[annual["Card"].isin(selected_cards)]
-
-
-
 
 st.header("Resumo Anual por Cartão")
 renamed = filtered_annual.rename(
@@ -155,12 +272,11 @@ st.dataframe(
 )
 
 
+st.header("Visão Geral por Cartão")
 
-
-st.header("Gráfico Geral por Cartão")
 fig_all = go.Figure()
 fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total fatura"], name="Fatura Total"))
-fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total pago com cartão"], name="Pagamentos Totais"))
+fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total pago com cartão"], name="Pagamentos com cartão"))
 fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total pago com recursos de terceiros"], name="Despesas Terceiros"))
 fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total pago com recursos próprios"], name="Recursos Próprios"))
 fig_all.update_layout(
@@ -174,8 +290,6 @@ fig_all.update_layout(
 st.plotly_chart(fig_all, use_container_width=True)
 
 
-
-
 for card in selected_cards:
     st.subheader(card)
     cd = filtered_df[filtered_df["Card"] == card]
@@ -184,18 +298,46 @@ for card in selected_cards:
         continue
 
     fig = go.Figure()
-    fig.add_trace(go.Bar(x=cd["Month"], y=cd["Total_Invoice"], name="Fatura Total", width=0.15))
-    fig.add_trace(go.Bar(x=cd["Month"], y=cd["Total_Payments"], name="Pagamentos Totais", width=0.15))
-    fig.add_trace(go.Bar(x=cd["Month"], y=cd["Third_Party_Expenses"], name="Despesas Terceiros", width=0.15))
-    fig.add_trace(go.Bar(x=cd["Month"], y=cd["Own_Resources"], name="Recursos Próprios", width=0.15))
+    
     fig.add_trace(
-        go.Scatter(
+        go.Bar(
             x=cd["Month"],
-            y=cd["Payment_Ratio"],
-            mode="lines+markers",
-            name="Proporção P/Fatura",
-            yaxis="y2",
-            line=dict(color="red", width=2),
+            y=cd["Total_Invoice"],
+            name="Fatura Total",
+            width=0.22,
+            hovertemplate="<b>%{x}</b><br>Fatura Total: R$ %{y:,.2f}<extra></extra>",
+        )
+    )
+
+    fig.add_trace(
+        go.Bar(
+            x=cd["Month"],
+            y=cd["Total_Payments"],
+            name="Pagamentos com cartão",
+            width=0.22,
+            customdata=cd["Payment_Cards"],
+            hovertemplate="<b>%{x}</b><br>Pagamentos: R$ %{y:,.2f}"
+                          "<br><b>Cartões usados:</b> %{customdata}<extra></extra>",
+        )
+    )
+
+    fig.add_trace(
+        go.Bar(
+            x=cd["Month"],
+            y=cd["Third_Party_Expenses"],
+            name="Despesas Terceiros",
+            width=0.22,
+            hovertemplate="<b>%{x}</b><br>Despesas Terceiros: R$ %{y:,.2f}<extra></extra>",
+        )
+    )
+
+    fig.add_trace(
+        go.Bar(
+            x=cd["Month"],
+            y=cd["Own_Resources"],
+            name="Recursos Próprios",
+            width=0.22,
+            hovertemplate="<b>%{x}</b><br>Recursos Próprios: R$ %{y:,.2f}<extra></extra>",
         )
     )
 
@@ -203,14 +345,9 @@ for card in selected_cards:
         barmode="group",
         xaxis_tickangle=45,
         yaxis_title="Valor (R$)",
-        yaxis2=dict(
-            overlaying="y",
-            side="right",
-            title="Proporção P/Fatura",
-            range=[0, max(1.5, cd["Payment_Ratio"].max() * 1.1)],
-        ),
         template="plotly_white",
-        height=600,
+        height=550,
         width=1000,
     )
+
     st.plotly_chart(fig, use_container_width=True)
