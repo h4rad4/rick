@@ -3,11 +3,19 @@ import pandas as pd
 import plotly.graph_objects as go
 
 import io
+import os
 import plotly.graph_objects as go
 import plotly.io as pio
 from reportlab.lib.pagesizes import landscape, letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
+
+
+for path in ("/usr/bin/chromium", "/usr/bin/google-chrome"):
+    if os.path.exists(path):
+        pio.kaleido.scope.default_scope.chrome_path = path
+        break
+
 
 st.set_page_config(page_title="Finanças", layout="wide")
 
