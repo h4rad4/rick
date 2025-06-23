@@ -2,6 +2,13 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
+import io
+import plotly.graph_objects as go
+import plotly.io as pio
+from reportlab.lib.pagesizes import landscape, letter
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
+
 st.set_page_config(page_title="Finanças", layout="wide")
 
 @st.cache_data
@@ -189,54 +196,94 @@ def load_data():
     }
 
 
-    records = []
+    recs = []
     for card in cards:
-        for i, month in enumerate(months):
-            inv = invoice_data.get(card, [0] * 12)[i]
-            pay = payment_data.get(card, [0] * 12)[i]
-            thr = third_party_data.get(card, [0] * 12)[i]
-            own = own_resources_data.get(card, [0] * 12)[i]
-            ratio = pay / inv if inv else 0
-            cards_used = payment_cards_used.get(card, ["-"] * 12)[i]
-            records.append(
-                dict(
-                    Card=card,
-                    Month=month,
-                    Total_Invoice=inv,
-                    Total_Payments=pay,
-                    Third_Party_Expenses=thr,
-                    Own_Resources=own,
-                    Payment_Ratio=ratio,
-                    Payment_Cards=cards_used,
-                )
+        for i, m in enumerate(months):
+            inv  = invoice_data.get(card, [0]*12)[i]
+            pay  = payment_data.get(card, [0]*12)[i]
+            thr  = third_party_data.get(card, [0]*12)[i]
+            own  = own_resources_data.get(card, [0]*12)[i]
+            pr   = pay / inv if inv else 0
+            used = payment_cards_used.get(card, ["-"]*12)[i]
+            recs.append(
+                dict(Card=card, Month=m,
+                     Total_Invoice=inv, Total_Payments=pay,
+                     Third_Party_Expenses=thr, Own_Resources=own,
+                     Payment_Ratio=pr, Payment_Cards=used)
             )
-
-    df = pd.DataFrame(records)
-
-    numeric = [
-        "Total_Invoice",
-        "Total_Payments",
-        "Third_Party_Expenses",
-        "Own_Resources",
-        "Payment_Ratio",
-    ]
+    df = pd.DataFrame(recs)
+    numeric = ["Total_Invoice","Total_Payments","Third_Party_Expenses","Own_Resources","Payment_Ratio"]
     df[numeric] = df[numeric].apply(pd.to_numeric).fillna(0)
     df["Month"] = pd.Categorical(df["Month"], categories=months, ordered=True)
 
     annual = (
-        df.groupby("Card")[["Total_Invoice", "Total_Payments",
-                            "Third_Party_Expenses", "Own_Resources"]]
-        .sum()
-        .reset_index()
+        df.groupby("Card")[["Total_Invoice","Total_Payments","Third_Party_Expenses","Own_Resources"]]
+        .sum().reset_index()
     )
     return df, cards, months, annual
 
+
+def build_pdf(summary_df: pd.DataFrame, fig_all, card_items):
+    """
+    summary_df  : DataFrame resumo anual (index = Card)
+    fig_all     : gráfico geral (plotly Figure)
+    card_items  : lista de tuples (card_name, monthly_table_df, monthly_fig)
+    """
+    buf = io.BytesIO()
+    pdf = canvas.Canvas(buf, pagesize=landscape(letter))
+    pw, ph = landscape(letter)
+
+    pdf.setFont("Helvetica-Bold", 20)
+    pdf.drawString(40, ph-40, "Finanças – Resumo Anual")
+    pdf.setFont("Courier", 8)
+
+    tbl_str = summary_df.to_string(col_space=14, justify="left",
+                                   formatters={c:lambda x:f"{x:,.2f}" for c in summary_df.columns})
+    y = ph - 70
+    for line in tbl_str.splitlines():
+        pdf.drawString(40, y, line)
+        y -= 10
+    pdf.showPage()
+
+    pdf.setFont("Helvetica-Bold", 16)
+    pdf.drawString(40, ph-40, "Visão Geral Anual por Cartão")
+    img_all = pio.to_image(fig_all, format="png", width=1400, height=600, scale=2)
+    pdf.drawImage(ImageReader(io.BytesIO(img_all)),
+                  40, ph-560, width=pw-80, height=520, preserveAspectRatio=True)
+    pdf.showPage()
+
+    for card, tbl_df, fig in card_items:
+        pdf.setFont("Helvetica-Bold", 16)
+        pdf.drawString(40, ph-40, f"{card} – Dados Mensais")
+        pdf.setFont("Courier", 7.5)
+        tbl_str = tbl_df.to_string(index=False, col_space=11,
+                                   formatters={
+                                       "Total_Invoice":        lambda x:f"{x:,.2f}",
+                                       "Total_Payments":       lambda x:f"{x:,.2f}",
+                                       "Third_Party_Expenses": lambda x:f"{x:,.2f}",
+                                       "Own_Resources":        lambda x:f"{x:,.2f}",
+                                   })
+        y = ph - 70
+        for line in tbl_str.splitlines():
+            pdf.drawString(40, y, line)
+            y -= 9.5
+        pdf.showPage()
+        
+        pdf.setFont("Helvetica-Bold", 16)
+        pdf.drawString(40, ph-40, f"{card} – Gráfico Mensal")
+        img = pio.to_image(fig, format="png", width=1400, height=600, scale=2)
+        pdf.drawImage(ImageReader(io.BytesIO(img)),
+                      40, ph-560, width=pw-80, height=520, preserveAspectRatio=True)
+        pdf.showPage()
+
+    pdf.save()
+    buf.seek(0)
+    return buf
 
 df, cards, months, annual = load_data()
 
 st.title("Finanças")
 
-st.header("Filtros")
 col1, col2 = st.columns(2)
 with col1:
     selected_cards = st.multiselect("Selecionar Cartões", cards, default=cards)
@@ -247,107 +294,81 @@ if not selected_cards or not selected_months:
     st.warning("Selecione pelo menos um cartão e um mês")
     st.stop()
 
-filtered_df = df[df["Card"].isin(selected_cards) & df["Month"].isin(selected_months)]
-filtered_annual = annual[annual["Card"].isin(selected_cards)]
+f_df = df[df["Card"].isin(selected_cards) & df["Month"].isin(selected_months)]
+f_annual = annual[annual["Card"].isin(selected_cards)]
 
 st.header("Resumo Anual por Cartão")
-renamed = filtered_annual.rename(
-    columns={
-        "Total_Invoice": "Total fatura",
-        "Total_Payments": "Total pago com cartão de crédito",
-        "Third_Party_Expenses": "Total pago com recursos de terceiros",
-        "Own_Resources": "Total pago com recursos próprios",
-    }
-)
+resum = f_annual.rename(columns={
+    "Total_Invoice": "Total fatura",
+    "Total_Payments": "Pagos no cartão",
+    "Third_Party_Expenses": "Recursos de terceiros",
+    "Own_Resources": "Recursos próprios",
+})
+num_cols = ["Total fatura","Pagos no cartão","Recursos de terceiros","Recursos próprios"]
+st.dataframe(resum.style.format({c:"R${:,.2f}" for c in num_cols}),
+             use_container_width=True)
 
-num_cols = [
-    "Total fatura",
-    "Total pago com cartão de crédito",
-    "Total pago com recursos de terceiros",
-    "Total pago com recursos próprios",
-]
-st.dataframe(
-    renamed.style.format({col: "R${:,.2f}" for col in num_cols}),
-    use_container_width=True,
-)
-
-
-st.header("Visão Geral por Cartão")
-
+st.header("Gráfico Geral por Cartão")
 fig_all = go.Figure()
-fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total fatura"], name="Fatura Total"))
-fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total pago com cartão de crédito"], name="Pagamentos com cartão de crédito"))
-fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total pago com recursos de terceiros"], name="Despesas Terceiros"))
-fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total pago com recursos próprios"], name="Recursos Próprios"))
-fig_all.update_layout(
-    barmode="group",
-    title="Visão Geral Anual por Cartão",
-    xaxis_title="Cartão",
-    yaxis_title="Valor (R$)",
-    template="plotly_white",
-    height=500,
-)
+fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Total fatura"], name="Fatura Total"))
+fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Pagos no cartão"], name="Pagamentos com cartão"))
+fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Recursos de terceiros"], name="Despesas Terceiros"))
+fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Recursos próprios"], name="Recursos Próprios"))
+fig_all.update_layout(barmode="group", template="plotly_white",
+                      xaxis_title="Cartão", yaxis_title="Valor (R$)", height=500)
 st.plotly_chart(fig_all, use_container_width=True)
 
+card_items = []
 
 for card in selected_cards:
     st.subheader(card)
-    cd = filtered_df[filtered_df["Card"] == card]
+    cd = f_df[f_df["Card"] == card]
     if cd.empty:
         st.write("Nenhum dado para meses selecionados")
         continue
 
+    tbl_stream = cd[["Month","Total_Invoice","Total_Payments",
+                     "Third_Party_Expenses","Own_Resources"]].rename(columns={
+        "Month":"Mês","Total_Invoice":"Fatura","Total_Payments":"Pagos no cartão",
+        "Third_Party_Expenses":"De terceiros","Own_Resources":"Recursos próprios"})
+    st.dataframe(
+        tbl_stream.style.format({"Fatura":"R${:,.2f}",
+                                 "Pagos no cartão":"R${:,.2f}",
+                                 "De terceiros":"R${:,.2f}",
+                                 "Recursos próprios":"R${:,.2f}"}),
+        use_container_width=True,
+    )
+
     fig = go.Figure()
-    
-    fig.add_trace(
-        go.Bar(
-            x=cd["Month"],
-            y=cd["Total_Invoice"],
-            name="Fatura Total",
-            width=0.22,
-            hovertemplate="<b>%{x}</b><br>Fatura Total: R$ %{y:,.2f}<extra></extra>",
-        )
-    )
-
-    fig.add_trace(
-        go.Bar(
-            x=cd["Month"],
-            y=cd["Total_Payments"],
-            name="Pagamentos com cartão de crédito",
-            width=0.22,
-            customdata=cd["Payment_Cards"],
-            hovertemplate="<b>%{x}</b><br>Pagamentos: R$ %{y:,.2f}"
-                          "<br><b>Cartões usados:</b> %{customdata}<extra></extra>",
-        )
-    )
-
-    fig.add_trace(
-        go.Bar(
-            x=cd["Month"],
-            y=cd["Third_Party_Expenses"],
-            name="Despesas Terceiros",
-            width=0.22,
-            hovertemplate="<b>%{x}</b><br>Despesas Terceiros: R$ %{y:,.2f}<extra></extra>",
-        )
-    )
-
-    fig.add_trace(
-        go.Bar(
-            x=cd["Month"],
-            y=cd["Own_Resources"],
-            name="Recursos Próprios",
-            width=0.22,
-            hovertemplate="<b>%{x}</b><br>Recursos Próprios: R$ %{y:,.2f}<extra></extra>",
-        )
-    )
-
-    fig.update_layout(
-        barmode="group",
-        xaxis_tickangle=45,
-        yaxis_title="Valor (R$)",
-        template="plotly_white",
-        height=550,
-        width=1000,
-    )
-
+    fig.add_trace(go.Bar(x=cd["Month"], y=cd["Total_Invoice"],
+                         name="Fatura Total", width=0.22,
+                         hovertemplate="<b>%{x}</b><br>Fatura: R$ %{y:,.2f}<extra></extra>"))
+    fig.add_trace(go.Bar(x=cd["Month"], y=cd["Total_Payments"],
+                         name="Pagamentos com cartão", width=0.22,
+                         customdata=cd["Payment_Cards"],
+                         hovertemplate="<b>%{x}</b><br>Pagamentos: R$ %{y:,.2f}"
+                                       "<br><b>Cartões usados:</b> %{customdata}<extra></extra>"))
+    fig.add_trace(go.Bar(x=cd["Month"], y=cd["Third_Party_Expenses"],
+                         name="Despesas Terceiros", width=0.22,
+                         hovertemplate="<b>%{x}</b><br>Terceiros: R$ %{y:,.2f}<extra></extra>"))
+    fig.add_trace(go.Bar(x=cd["Month"], y=cd["Own_Resources"],
+                         name="Recursos Próprios", width=0.22,
+                         hovertemplate="<b>%{x}</b><br>Recursos próprios: R$ %{y:,.2f}<extra></extra>"))
+    fig.update_layout(barmode="group", template="plotly_white",
+                      xaxis_tickangle=45, yaxis_title="Valor (R$)", height=550)
     st.plotly_chart(fig, use_container_width=True)
+
+    tbl_pdf = cd[["Month","Total_Invoice","Total_Payments",
+                  "Third_Party_Expenses","Own_Resources"]].copy()
+    card_items.append((card, tbl_pdf, fig))
+
+st.markdown("---")
+if st.button("Exportar PDF"):
+    try:
+        sum_pdf = resum.set_index("Card")[["Total fatura","Pagos no cartão","Recursos de terceiros","Recursos próprios"]]
+        pdf_file = build_pdf(sum_pdf, fig_all, card_items)
+        st.download_button("Baixar PDF", pdf_file,
+                           file_name="financas_dashboard.pdf",
+                           mime="application/pdf", use_container_width=True)
+    except Exception as exc:
+        st.error(f"Falha ao gerar PDF.\nVerifique se *kaleido* e *reportlab* estão instalados.\n\n{exc}")
