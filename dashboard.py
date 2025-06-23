@@ -7,7 +7,7 @@ st.set_page_config(page_title='Finanças', layout='wide')
 @st.cache_data
 def load_data():
     file_path = 'Fatura_Valor_Total_13122016.xlsx'
-1
+
     cards = [
         'Santander Platinum Visa 1132',
         'SMILES BANCO DO BRASIL 4208',
