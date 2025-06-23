@@ -84,7 +84,6 @@ def load_data():
             pay = payment_data.get(card, [0] * 12)[i]
             thr = third_party_data.get(card, [0] * 12)[i]
             own = own_resources_data.get(card, [0] * 12)[i]
-            canceled = inv - pay - thr - own
             ratio = pay / inv if inv else 0
             records.append(
                 dict(
@@ -94,18 +93,17 @@ def load_data():
                     Total_Payments=pay,
                     Third_Party_Expenses=thr,
                     Own_Resources=own,
-                    Canceled=canceled,
                     Payment_Ratio=ratio,
                 )
             )
 
     df = pd.DataFrame(records)
-    numeric = ["Total_Invoice", "Total_Payments", "Third_Party_Expenses", "Own_Resources", "Canceled", "Payment_Ratio"]
+    numeric = ["Total_Invoice", "Total_Payments", "Third_Party_Expenses", "Own_Resources", "Payment_Ratio"]
     df[numeric] = df[numeric].apply(pd.to_numeric).fillna(0)
     df["Month"] = pd.Categorical(df["Month"], categories=months, ordered=True)
 
     annual = (
-        df.groupby("Card")[["Total_Invoice", "Total_Payments", "Third_Party_Expenses", "Own_Resources", "Canceled"]]
+        df.groupby("Card")[["Total_Invoice", "Total_Payments", "Third_Party_Expenses", "Own_Resources"]]
         .sum()
         .reset_index()
     )
@@ -142,7 +140,6 @@ renamed = filtered_annual.rename(
         "Total_Payments": "Total pago com cartão",
         "Third_Party_Expenses": "Total pago com recursos de terceiros",
         "Own_Resources": "Total pago com recursos próprios",
-        "Canceled": "Total cancelado",
     }
 )
 
@@ -151,7 +148,6 @@ num_cols = [
     "Total pago com cartão",
     "Total pago com recursos de terceiros",
     "Total pago com recursos próprios",
-    "Total cancelado",
 ]
 st.dataframe(
     renamed.style.format({col: "R${:,.2f}" for col in num_cols}),
@@ -167,7 +163,6 @@ fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total fatura"], name="Fat
 fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total pago com cartão"], name="Pagamentos Totais"))
 fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total pago com recursos de terceiros"], name="Despesas Terceiros"))
 fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total pago com recursos próprios"], name="Recursos Próprios"))
-fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total cancelado"], name="Cancelados"))
 fig_all.update_layout(
     barmode="group",
     title="Visão Geral Anual por Cartão",
@@ -193,7 +188,6 @@ for card in selected_cards:
     fig.add_trace(go.Bar(x=cd["Month"], y=cd["Total_Payments"], name="Pagamentos Totais", width=0.15))
     fig.add_trace(go.Bar(x=cd["Month"], y=cd["Third_Party_Expenses"], name="Despesas Terceiros", width=0.15))
     fig.add_trace(go.Bar(x=cd["Month"], y=cd["Own_Resources"], name="Recursos Próprios", width=0.15))
-    fig.add_trace(go.Bar(x=cd["Month"], y=cd["Canceled"], name="Cancelados", width=0.15))
     fig.add_trace(
         go.Scatter(
             x=cd["Month"],
