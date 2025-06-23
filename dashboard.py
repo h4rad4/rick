@@ -10,12 +10,7 @@ from reportlab.lib.pagesizes import landscape, letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 
-
-for path in ("/usr/bin/chromium", "/usr/bin/google-chrome"):
-    if os.path.exists(path):
-        pio.kaleido.scope.default_scope.chrome_path = path
-        break
-
+os.environ["BROWSER_PATH"] = "/usr/bin/chromium"
 
 st.set_page_config(page_title="Finanças", layout="wide")
 
