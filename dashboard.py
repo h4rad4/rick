@@ -254,7 +254,7 @@ st.header("Resumo Anual por Cartão")
 renamed = filtered_annual.rename(
     columns={
         "Total_Invoice": "Total fatura",
-        "Total_Payments": "Total pago com cartão",
+        "Total_Payments": "Total pago com cartão de crédito",
         "Third_Party_Expenses": "Total pago com recursos de terceiros",
         "Own_Resources": "Total pago com recursos próprios",
     }
@@ -262,7 +262,7 @@ renamed = filtered_annual.rename(
 
 num_cols = [
     "Total fatura",
-    "Total pago com cartão",
+    "Total pago com cartão de crédito",
     "Total pago com recursos de terceiros",
     "Total pago com recursos próprios",
 ]
@@ -276,7 +276,7 @@ st.header("Visão Geral por Cartão")
 
 fig_all = go.Figure()
 fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total fatura"], name="Fatura Total"))
-fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total pago com cartão"], name="Pagamentos com cartão"))
+fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total pago com cartão de crédito"], name="Pagamentos com cartão de crédito"))
 fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total pago com recursos de terceiros"], name="Despesas Terceiros"))
 fig_all.add_trace(go.Bar(x=renamed["Card"], y=renamed["Total pago com recursos próprios"], name="Recursos Próprios"))
 fig_all.update_layout(
@@ -313,7 +313,7 @@ for card in selected_cards:
         go.Bar(
             x=cd["Month"],
             y=cd["Total_Payments"],
-            name="Pagamentos com cartão",
+            name="Pagamentos com cartão de crédito",
             width=0.22,
             customdata=cd["Payment_Cards"],
             hovertemplate="<b>%{x}</b><br>Pagamentos: R$ %{y:,.2f}"
