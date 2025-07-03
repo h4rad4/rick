@@ -303,18 +303,18 @@ f_annual = annual[annual["Card"].isin(selected_cards)]
 st.header("Resumo Anual por Cartão")
 resum = f_annual.rename(columns={
     "Total_Invoice": "Total fatura",
-    "Total_Payments": "Pagos no cartão",
+    "Total_Payments": "Pagos no cartão de crédito",
     "Third_Party_Expenses": "Recursos de terceiros",
     "Own_Resources": "Recursos próprios",
 })
-num_cols = ["Total fatura","Pagos no cartão","Recursos de terceiros","Recursos próprios"]
+num_cols = ["Total fatura","Pagos no cartão de crédito","Recursos de terceiros","Recursos próprios"]
 st.dataframe(resum.style.format({c:"R${:,.2f}" for c in num_cols}),
              use_container_width=True)
 
 st.header("Gráfico Geral por Cartão")
 fig_all = go.Figure()
 fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Total fatura"], name="Fatura Total"))
-fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Pagos no cartão"], name="Pagamentos com cartão de crédito"))
+fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Pagos no cartão de crédito"], name="Pagamentos com cartão de crédito"))
 fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Recursos de terceiros"], name="Despesas Terceiros"))
 fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Recursos próprios"], name="Recursos Próprios"))
 fig_all.update_layout(barmode="group", template="plotly_white",
@@ -332,11 +332,11 @@ for card in selected_cards:
 
     tbl_stream = cd[["Month","Total_Invoice","Total_Payments",
                      "Third_Party_Expenses","Own_Resources"]].rename(columns={
-        "Month":"Mês","Total_Invoice":"Fatura","Total_Payments":"Pagos no cartão",
+        "Month":"Mês","Total_Invoice":"Fatura","Total_Payments":"Pagos no cartão de crédito",
         "Third_Party_Expenses":"De terceiros","Own_Resources":"Recursos próprios"})
     st.dataframe(
         tbl_stream.style.format({"Fatura":"R${:,.2f}",
-                                 "Pagos no cartão":"R${:,.2f}",
+                                 "Pagos no cartão de crédito":"R${:,.2f}",
                                  "De terceiros":"R${:,.2f}",
                                  "Recursos próprios":"R${:,.2f}"}),
         use_container_width=True,
