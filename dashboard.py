@@ -302,21 +302,22 @@ f_annual = annual[annual["Card"].isin(selected_cards)]
 
 st.header("Resumo Anual por Cartão")
 resum = f_annual.rename(columns={
-    "Total_Invoice": "Total fatura",
-    "Total_Payments": "Pagos com cartão de crédito",
-    "Third_Party_Expenses": "Recursos de terceiros",
-    "Own_Resources": "Recursos próprios",
+    "Card": "Cartão de Crédito",
+    "Total_Invoice": "Valor total da fatura",
+    "Total_Payments": "Valor pago com cartão de crédito",
+    "Third_Party_Expenses": "Valor pago por terceiros",
+    "Own_Resources": "Valor pago com recursos próprios",
 })
-num_cols = ["Total fatura","Pagos com cartão de crédito","Recursos de terceiros","Recursos próprios"]
+num_cols = ["Valor total da fatura","Valor pago com cartão de crédito","Valor pago por terceiros","Valor pago com recursos próprios"]
 st.dataframe(resum.style.format({c:"R${:,.2f}" for c in num_cols}),
              use_container_width=True)
 
 st.header("Gráfico Geral por Cartão")
 fig_all = go.Figure()
-fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Total fatura"], name="Fatura Total"))
-fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Pagos com cartão de crédito"], name="Pagamentos com cartão de crédito"))
-fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Recursos de terceiros"], name="Despesas Terceiros"))
-fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Recursos próprios"], name="Recursos Próprios"))
+fig_all.add_trace(go.Bar(x=resum["Cartão de Crédito"], y=resum["Valor total da fatura"], name="Valor total da fatura"))
+fig_all.add_trace(go.Bar(x=resum["Cartão de Crédito"], y=resum["Valor pago com cartão de crédito"], name="Pagamentos com cartão de crédito"))
+fig_all.add_trace(go.Bar(x=resum["Cartão de Crédito"], y=resum["Valor pago por terceiros"], name="Valor pago por terceiros"))
+fig_all.add_trace(go.Bar(x=resum["Cartão de Crédito"], y=resum["Valor pago com recursos próprios"], name="Valor pago com recursos próprios"))
 fig_all.update_layout(barmode="group", template="plotly_white",
                       xaxis_title="Cartão", yaxis_title="Valor (R$)", height=500)
 st.plotly_chart(fig_all, use_container_width=True)
@@ -332,31 +333,31 @@ for card in selected_cards:
 
     tbl_stream = cd[["Month","Total_Invoice","Total_Payments",
                      "Third_Party_Expenses","Own_Resources"]].rename(columns={
-        "Month":"Mês","Total_Invoice":"Fatura","Total_Payments":"Pagos com cartão de crédito",
-        "Third_Party_Expenses":"De terceiros","Own_Resources":"Recursos próprios"})
+        "Month":"Mês","Total_Invoice":"Valor total da fatura","Total_Payments":"Valor pago com cartão de crédito",
+        "Third_Party_Expenses":"Valor pago por terceiros","Own_Resources":"Valor pago com recursos próprios"})
     st.dataframe(
-        tbl_stream.style.format({"Fatura":"R${:,.2f}",
-                                 "Pagos com cartão de crédito":"R${:,.2f}",
-                                 "De terceiros":"R${:,.2f}",
-                                 "Recursos próprios":"R${:,.2f}"}),
+        tbl_stream.style.format({"Valor total da fatura":"R${:,.2f}",
+                                 "Valor pago com cartão de crédito":"R${:,.2f}",
+                                 "Valor pago por terceiros":"R${:,.2f}",
+                                 "Valor pago com recursos próprios":"R${:,.2f}"}),
         use_container_width=True,
     )
 
     fig = go.Figure()
     fig.add_trace(go.Bar(x=cd["Month"], y=cd["Total_Invoice"],
-                         name="Fatura Total", width=0.22,
-                         hovertemplate="<b>%{x}</b><br>Fatura: R$ %{y:,.2f}<extra></extra>"))
+                         name="Valor total da fatura", width=0.22,
+                         hovertemplate="<b>%{x}</b><br>Valor total da fatura: R$ %{y:,.2f}<extra></extra>"))
     fig.add_trace(go.Bar(x=cd["Month"], y=cd["Total_Payments"],
                          name="Pagamentos com cartão de crédito", width=0.22,
                          customdata=cd["Payment_Cards"],
                          hovertemplate="<b>%{x}</b><br>Pagamentos: R$ %{y:,.2f}"
                                        "<br><b>Cartões usados:</b> %{customdata}<extra></extra>"))
     fig.add_trace(go.Bar(x=cd["Month"], y=cd["Third_Party_Expenses"],
-                         name="Despesas Terceiros", width=0.22,
+                         name="Valor pago por terceiros", width=0.22,
                          hovertemplate="<b>%{x}</b><br>Terceiros: R$ %{y:,.2f}<extra></extra>"))
     fig.add_trace(go.Bar(x=cd["Month"], y=cd["Own_Resources"],
-                         name="Recursos Próprios", width=0.22,
-                         hovertemplate="<b>%{x}</b><br>Recursos próprios: R$ %{y:,.2f}<extra></extra>"))
+                         name="Valor pago com recursos próprios", width=0.22,
+                         hovertemplate="<b>%{x}</b><br>Valor pago com recursos próprios: R$ %{y:,.2f}<extra></extra>"))
     fig.update_layout(barmode="group", template="plotly_white",
                       xaxis_tickangle=45, yaxis_title="Valor (R$)", height=550)
     st.plotly_chart(fig, use_container_width=True)
@@ -368,7 +369,7 @@ for card in selected_cards:
 st.markdown("---")
 if st.button("Exportar PDF"):
     try:
-        sum_pdf = resum.set_index("Card")[["Total fatura","Pagos com cartão de crédito","Recursos de terceiros","Recursos próprios"]]
+        sum_pdf = resum.set_index("Cartão de Crédito")[["Valor total da fatura","Valor pago com cartão de crédito","Valor pago por terceiros","Valor pago com recursos próprios"]]
         pdf_file = build_pdf(sum_pdf, fig_all, card_items)
         st.download_button("Baixar PDF", pdf_file,
                            file_name="financas_dashboard.pdf",
