@@ -51,8 +51,8 @@ def load_data():
         "AmericanExpress_51000_Green": [0, 1668.47, 665.67, 1908.82, 2036.82, 1654.53, 2440.23, 2665.81, 3000.00, 6007.83, 4534.03, 4633.58],
         "AmericanExpress_78006_Platinum": [0, 2161.00, 1306.88, 1687.32, 1737.33, 2180.21, 2565.49, 1456.03, 1687.74, 0, 868.26, 1906.62],
         "ITAU MASTERCARD GOLD 0655": [0, 4858.84, 0, 4270.97, 0, 2683.87, 757.79, 780.79, 4915.61, 6349.50, 6000.00, 6700.00],
-        "ITAU MASTERCARD PLATINUM 5798": [0, 2000.00, 1864.01, 5587.77, 5905.30, 805.90, 5000.00, 5400.00, 3281.72, 3732.61, 4738.75, 0],
-        "ITAU VISA GOLD 1267": [0, 0, 3500.00, 1094.33, 4943.67, 0, 1804.56, 0, 2928.56, 1822.79, 12223.62, 0],
+        "ITAU MASTERCARD PLATINUM 5798": [0, 0, 2000.00, 1864.01, 5587.77, 5905.30, 805.90, 5000.00, 5400.00, 3281.72, 3732.61, 4738.75],
+        "ITAU VISA GOLD 1267": [0, 0, 3500.00, 1094.33, 4943.67, 0, 0,1804.56, 0, 2928.56, 1822.79, 12223.62],
         "Santander_Master": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4100.00],
         "CETELEM": [0] * 12,
     }
@@ -155,15 +155,15 @@ def load_data():
         ],
         "ITAU MASTERCARD PLATINUM 5798": [
             "-",
-            "Itaú Master Gold",
             "-",
+            "Itaú Master Gold",
             "Santander Platinum Visa",
             "Cartão Smiles / Itaú Master Gold",
             "Santander Platinum Visa / Cartão Smiles",
-            "-",
-            "-",
-            "-",
-            "-",
+            "Santander Platinum Visa",
+            "Cartao Smiles",
+            "Santander Platinum Visa",
+            "Santander Platinum Visa",
             "Santander Platinum Visa / Cartão Smiles",
             "Santander Platinum Visa / Santander Platinum Master",
         ],
@@ -314,7 +314,7 @@ st.dataframe(resum.style.format({c:"R${:,.2f}" for c in num_cols}),
 st.header("Gráfico Geral por Cartão")
 fig_all = go.Figure()
 fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Total fatura"], name="Fatura Total"))
-fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Pagos no cartão"], name="Pagamentos com cartão"))
+fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Pagos no cartão"], name="Pagamentos com cartão de crédito"))
 fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Recursos de terceiros"], name="Despesas Terceiros"))
 fig_all.add_trace(go.Bar(x=resum["Card"], y=resum["Recursos próprios"], name="Recursos Próprios"))
 fig_all.update_layout(barmode="group", template="plotly_white",
@@ -347,7 +347,7 @@ for card in selected_cards:
                          name="Fatura Total", width=0.22,
                          hovertemplate="<b>%{x}</b><br>Fatura: R$ %{y:,.2f}<extra></extra>"))
     fig.add_trace(go.Bar(x=cd["Month"], y=cd["Total_Payments"],
-                         name="Pagamentos com cartão", width=0.22,
+                         name="Pagamentos com cartão de crédito", width=0.22,
                          customdata=cd["Payment_Cards"],
                          hovertemplate="<b>%{x}</b><br>Pagamentos: R$ %{y:,.2f}"
                                        "<br><b>Cartões usados:</b> %{customdata}<extra></extra>"))
@@ -368,7 +368,7 @@ for card in selected_cards:
 st.markdown("---")
 if st.button("Exportar PDF"):
     try:
-        sum_pdf = resum.set_index("Card")[["Total fatura","Pagos no cartão","Recursos de terceiros","Recursos próprios"]]
+        sum_pdf = resum.set_index("Card")[["Total fatura","Pagos no cartão de crédito","Recursos de terceiros","Recursos próprios"]]
         pdf_file = build_pdf(sum_pdf, fig_all, card_items)
         st.download_button("Baixar PDF", pdf_file,
                            file_name="financas_dashboard.pdf",
